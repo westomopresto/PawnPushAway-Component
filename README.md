@@ -1,5 +1,7 @@
 # PawnPushAway-Component
 A component for Unreal that pushes pawns away
+disclaimer i used chatGPT to help format my code, it has been battletested with 30 Characters
+use as is, no warranty, MIT license
 
 ![Image](https://i.imgur.com/RvrfZRW.png)
 
