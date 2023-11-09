@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Components/CapsuleComponent.h"
+#include "Components/ShapeComponent.h"
 #include "GameFramework/Character.h"
 #include "Math/UnrealMathUtility.h"
 #include "AC_PawnPushAway.generated.h"
@@ -25,21 +25,27 @@ public:
 
 	/** Please add a variable description */
 	UPROPERTY(Transient)
-	TObjectPtr<UCapsuleComponent> CapsuleComponent;
+	TObjectPtr<UShapeComponent> ShapeComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Settings")
+	bool DrawDebug = false;
+
+	UPROPERTY(EditAnywhere, Category = "Settings")
+	FName PushShapeTag = "PushShape"; // tag of the push shape we're gonna use
 
 	UPROPERTY(EditAnywhere, Category = "Settings")
 	float TickRate = 0.016667f; // Default tick rate (adjust as needed)
 
 	UPROPERTY(EditAnywhere, Category = "Settings")
-	float InterpolationSpeed = 8.0f; // Default interpolation speed (adjust as needed)
+	float InterpolationSpeed = 2.5f; // Default interpolation speed (adjust as needed)
 
 	UFUNCTION()
-	void OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnShapeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void OnCapsuleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void OnShapeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-
+	FColor DebugColor;
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };

@@ -22,14 +22,14 @@ void UAC_PawnPushAway::BeginPlay()
     if (CharacterOwner)
     {
         // If the cast is successful, get the CapsuleComponent of the ACharacter
-        UCapsuleComponent* CharacterCapsule = CharacterOwner->FindComponentByClass<UCapsuleComponent>();
+        UShapeComponent* PushShape = CharacterOwner->FindComponentByTag<UShapeComponent>(PushShapeTag);
 
-        if (CharacterCapsule)
+        if (PushShape)
         {
             // Store the reference to the CapsuleComponent in your component's CapsuleComponent property
-            CapsuleComponent = CharacterCapsule;
-            CapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &UAC_PawnPushAway::OnCapsuleBeginOverlap);
-            CapsuleComponent->OnComponentEndOverlap.AddDynamic(this, &UAC_PawnPushAway::OnCapsuleEndOverlap);
+            ShapeComponent = PushShape;
+            ShapeComponent->OnComponentBeginOverlap.AddDynamic(this, &UAC_PawnPushAway::OnShapeBeginOverlap);
+            ShapeComponent->OnComponentEndOverlap.AddDynamic(this, &UAC_PawnPushAway::OnShapeEndOverlap);
         }
         else
         {
@@ -42,9 +42,17 @@ void UAC_PawnPushAway::BeginPlay()
         // Handle the case where the owner is not an ACharacter
         UE_LOG(LogTemp, Warning, TEXT("Owner is not an ACharacter."));
     }
+
+    uint8 Red = FMath::RandRange(0, 255);
+    uint8 Green = FMath::RandRange(0, 255);
+    uint8 Blue = FMath::RandRange(0, 255);
+    uint8 Alpha = 255;  // You can adjust the alpha value as needed
+
+    // Create a random FColor
+    DebugColor = FColor(Red, Green, Blue, Alpha);
 }
 
-void UAC_PawnPushAway::OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void UAC_PawnPushAway::OnShapeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     ACharacter* OtherCharacter = Cast<ACharacter>(OtherActor);
     if (OtherCharacter)
@@ -55,7 +63,7 @@ void UAC_PawnPushAway::OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComp
     }
 }
 
-void UAC_PawnPushAway::OnCapsuleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void UAC_PawnPushAway::OnShapeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
     ACharacter* OtherCharacter = Cast<ACharacter>(OtherActor);
     if (OtherCharacter)
@@ -96,14 +104,40 @@ void UAC_PawnPushAway::TickComponent(float DeltaTime, ELevelTick TickType, FActo
         // Normalize the direction vector in 2D (ignoring Z)
         Direction = Direction.GetSafeNormal2D();
 
+
+        // Get the bounds of the shape component
+        float Radius = ShapeComponent->Bounds.SphereRadius;
+        float RadiusB = OverlappingCharacter->FindComponentByTag<UShapeComponent>(PushShapeTag)->Bounds.SphereRadius;
+        float CombinedRadius = Radius + RadiusB + 5.0f;
+
+        // Scale push strength by distance
+        float Distance = FVector::Dist(OwnerLocation, CharacterLocation);
+        float PushStrength = 1-(FMath::Clamp(((Distance / CombinedRadius)),0.0f, 1.0f));
+
+
         // Multiply the normalized vector by the owner's capsule component radius
-        FVector PushLocation = OwnerLocation + Direction * CapsuleComponent->GetUnscaledCapsuleHalfHeight();
+        FVector PushLocation = OwnerLocation + Direction * CombinedRadius;
 
         // Use VInterp to smoothly move the ACharacter to the new location
-        FVector NewLocation = FMath::VInterpTo(CharacterLocation, PushLocation, DeltaTime, InterpolationSpeed); 
+        FVector NewLocation = FMath::VInterpTo(CharacterLocation, PushLocation, DeltaTime, InterpolationSpeed * PushStrength);
 
         // Teleport the ACharacter to the new location
         OverlappingCharacter->TeleportTo(NewLocation, CharacterRotation);
+
+        if (DrawDebug) {
+            //debug
+            // Debug line for the direction vector
+            DrawDebugLine(GetWorld(), OwnerLocation, OwnerLocation + Direction * CombinedRadius, DebugColor, false, -1, 0, 1);
+
+            // Debug box for new location
+            FVector DebugBoxExtents = FVector(15.0f, 15.0f, 15.0f); // Set the box size
+            FVector DebugBoxCenter = PushLocation;
+            DrawDebugBox(GetWorld(), DebugBoxCenter, DebugBoxExtents, DebugColor, false, -1, 0, 1);
+
+            DrawDebugBox(GetWorld(), OwnerLocation, DebugBoxExtents/2, DebugColor, false, -1, 0, 1);
+            UE_LOG(LogTemp, Warning, TEXT("PushStrength: %f"), PushStrength);
+        }
+        
     }
 }
 
