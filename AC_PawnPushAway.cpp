@@ -117,6 +117,7 @@ void UAC_PawnPushAway::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
         // Multiply the normalized vector by the owner's capsule component radius
         FVector PushLocation = OwnerLocation + Direction * CombinedRadius;
+        PushLocation.Z = CharacterLocation.Z; // Sets Z to character Z, only pushing on Z test
 
         // Use VInterp to smoothly move the ACharacter to the new location
         FVector NewLocation = FMath::VInterpTo(CharacterLocation, PushLocation, DeltaTime, InterpolationSpeed * PushStrength);
