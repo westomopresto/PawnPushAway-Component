@@ -16,12 +16,12 @@ void UAC_PawnPushAway::BeginPlay()
     PrimaryComponentTick.TickInterval = TickRate;
     AActor* OwnerActor = GetOwner();
 
-    // Attempt to cast the owner Actor to ACharacter
+    // cast to the owner Actor -> ACharacter
     ACharacter* CharacterOwner = Cast<ACharacter>(OwnerActor);
 
     if (CharacterOwner)
     {
-        // If the cast is successful, get the CapsuleComponent of the ACharacter
+        // get the CapsuleComponent of the ACharacter
         UShapeComponent* PushShape = CharacterOwner->FindComponentByTag<UShapeComponent>(PushShapeTag);
 
         if (PushShape)
@@ -46,9 +46,9 @@ void UAC_PawnPushAway::BeginPlay()
     uint8 Red = FMath::RandRange(0, 255);
     uint8 Green = FMath::RandRange(0, 255);
     uint8 Blue = FMath::RandRange(0, 255);
-    uint8 Alpha = 255;  // You can adjust the alpha value as needed
+    uint8 Alpha = 255;  
 
-    // Create a random FColor
+    // random FColor
     DebugColor = FColor(Red, Green, Blue, Alpha);
 }
 
@@ -57,7 +57,7 @@ void UAC_PawnPushAway::OnShapeBeginOverlap(UPrimitiveComponent* OverlappedCompon
     ACharacter* OtherCharacter = Cast<ACharacter>(OtherActor);
     if (OtherCharacter)
     {
-        // Add the overlapping ACharacter to the OverlappedPawns array
+        // add the overlapping ACharacter to the OverlappedPawns array
         OverlappedPawns.Add(OtherCharacter);
         SetComponentTickEnabled(true);
     }
@@ -68,7 +68,7 @@ void UAC_PawnPushAway::OnShapeEndOverlap(UPrimitiveComponent* OverlappedComponen
     ACharacter* OtherCharacter = Cast<ACharacter>(OtherActor);
     if (OtherCharacter)
     {
-        // Remove the overlapping ACharacter from the OverlappedPawns array
+        // remove the overlapping ACharacter from the OverlappedPawns array
         OverlappedPawns.Remove(OtherCharacter);
         if (OverlappedPawns.Num() == 0)
         {
@@ -94,7 +94,7 @@ void UAC_PawnPushAway::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
     for (ACharacter* OverlappingCharacter : OverlappedPawns)
     {
-        // Get the ACharacter's location
+        // Get the Character's location
         FVector CharacterLocation = OverlappingCharacter->GetActorLocation();
         FRotator CharacterRotation = OverlappingCharacter->GetActorRotation();
 
